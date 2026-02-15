@@ -1,0 +1,289 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* CLASES PERSONALIZADAS DE TRAVESIA 
+     Esto garantiza que el color sea SIEMPRE sólido, sin importar si es Light, Dark o Cyberpunk.
+  */
+
+  /* Botón de Guardar (Verde Esmeralda Sólido) */
+  .btn-travesia-save {
+    background-color: #10b981 !important; /* emerald-500 */
+    color: white !important;
+  }
+  
+  .btn-travesia-save:hover {
+    background-color: #059669 !important; /* emerald-600 */
+  }
+
+  /* Botón de Eliminar (Rojo Sólido) */
+  .btn-travesia-delete {
+    background-color: #ef4444 !important; /* red-500 */
+    color: white !important;
+  }
+  
+  .btn-travesia-delete:hover {
+    background-color: #dc2626 !important; /* red-600 */
+  }
+
+  /* Botón INFO Sólido */
+  .btn-travesia-info {
+    background-color: #0ea5e9 !important; /* sky-500 */
+    border-color: #0ea5e9 !important;
+    color: white !important;
+  }
+  .btn-travesia-info:hover { background-color: #0284c7 !important; }
+
+  /* Botón SUCCESS Sólido (Reemplaza al estándar para consistencia) */
+  .btn-travesia-success {
+    background-color: #22c55e !important; /* green-500 */
+    border-color: #22c55e !important;
+    color: white !important;
+  }
+  .btn-travesia-success:hover { background-color: #16a34a !important; }
+
+  /* Botón WARNING Sólido */
+  .btn-travesia-warning {
+    background-color: #eab308 !important; /* yellow-500 */
+    border-color: #eab308 !important;
+    color: white !important; /* O black si prefieres contraste */
+  }
+  .btn-travesia-warning:hover { background-color: #ca8a04 !important; }
+
+  /* Botón ERROR Sólido */
+  .btn-travesia-error {
+    background-color: #ef4444 !important; /* red-500 */
+    border-color: #ef4444 !important;
+    color: white !important;
+  }
+  .btn-travesia-error:hover { background-color: #dc2626 !important; }
+
+  /* Botón EDITAR (Azul Sólido) */
+  .btn-travesia-edit {
+    background-color: #2563eb !important; /* blue-600 */
+    border-color: #2563eb !important;
+    color: white !important;
+  }
+  .btn-travesia-edit:hover { background-color: #1d4ed8 !important; }
+
+  /* Botón EXCEL (Verde Oscuro) */
+  .btn-travesia-excel {
+    background-color: #15803d !important; /* green-700 */
+    border-color: #15803d !important;
+    color: white !important;
+  }
+  .btn-travesia-excel:hover { background-color: #14532d !important; }
+
+  /* Botón PDF (Naranja/Rojo) */
+  .btn-travesia-pdf {
+    background-color: #ea580c !important; /* orange-600 */
+    border-color: #ea580c !important;
+    color: white !important;
+  }
+  .btn-travesia-pdf:hover { background-color: #c2410c !important; }
+
+  /* BOTÓN PRIMARIO (LOGIN / SISTEMA) - BLINDADO */
+  .btn-travesia-primary {
+    background-color: #432ad5 !important; /* Violet-600 (Morado) */
+    border-color: #432ad5 !important;
+    color: white !important;
+  }
+  .btn-travesia-primary:hover { 
+    background-color: #3d1eed !important; /* Un poco más oscuro al pasar el mouse */
+  }
+
+  /* BOTÓN NEUTRO/CANCELAR (Para el Modal "NO") */
+  /* A veces btn-ghost también falla, aseguramos un gris suave */
+  .btn-travesia-ghost {
+    background-color: transparent !important;
+    border: 1px solid #d1d5db !important; /* Gris suave (border-gray-300) */
+    color: inherit !important;
+  }
+  .btn-travesia-ghost:hover {
+    background-color: rgba(0,0,0,0.05) !important;
+  }
+  
+  /* Botón CREATE (Verde Oscuro) */
+  .btn-travesia-create {
+    background-color: #15803d !important; /* green-700 */
+    border-color: #15803d !important;
+    color: white !important;
+  }
+  .btn-travesia-create:hover { background-color: #14532d !important; }
+  
+  /* Botón CREATE (Morado) */
+  .btn-travesia-steps {
+    background-color: #432ad5 !important; /* violet-600 */
+    border-color: #432ad5 !important;
+    color: white !important;
+  }
+  .btn-travesia-steps:hover { background-color: #3d1eed !important; }
+
+  /* Animación de error (Shake) */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  .animate-shake {
+    animation: shake 0.3s ease-in-out;
+  }
+
+  /* ... tus otras animaciones ... */
+
+  /* FIX VISUAL STEPPER: */
+  /* Elimina forzosamente la línea que aparece a la izquierda del primer paso */
+  .steps .step:first-child:before {
+    content: none !important;
+    display: none !important;
+  }
+
+  /* Ajuste para que la barra ocupe todo el ancho correctamente */
+  .steps {
+    grid-auto-columns: 1fr; 
+  }
+
+  /* ... tus otras reglas ... */
+
+  /* FIX STEPPER NUMBERS: */
+  /* Obliga al círculo (::after) a leer el atributo data-content que pusimos en el HTML */
+  .step:after {
+    content: attr(data-content) !important;
+    font-weight: bold;
+  }
+
+  /* Opcional: Asegura que el texto sea blanco si el paso está activo (morado) */
+  .step-primary:after {
+    color: white !important;
+  }
+
+  /* Y asegúrate de mantener el fix anterior de la línea izquierda */
+  .steps .step:first-child:before {
+    content: none !important;
+    display: none !important;
+  }
+
+
+  /* ANIMACIONES TOAST (Efecto Tren) */
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; /* Un poco de rebote al entrar */
+  }
+
+  .animate-slide-out-right {
+    animation: slideOutRight 0.4s ease-in forwards;
+  }
+
+
+  /* SCROLLBAR INVISIBLE / DELGADO */
+  @layer utilities {
+    /* Opción 1: Ocultar totalmente (Recomendado para Sidebar) */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+
+    /* Opción 2: Muy delgado y sutil (Para contenidos) */
+    .thin-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .thin-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .thin-scrollbar::-webkit-scrollbar-thumb {
+      background-color: oklch(var(--bc) / 0.2);
+      border-radius: 20px;
+    }
+  }
+  
+
+  /* --- FIX REACT DATEPICKER & DAISYUI --- */
+
+  /* Contenedor Principal */
+  .react-datepicker {
+      font-family: inherit !important;
+      background-color: hsl(var(--b1)) !important; /* bg-base-100 */
+      border: 1px solid hsl(var(--b3)) !important; /* border-base-300 */
+      color: hsl(var(--bc)) !important;
+      box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.15) !important;
+  }
+
+  /* Header */
+  .react-datepicker__header {
+      background-color: hsl(var(--b2)) !important; /* bg-base-200 */
+      border-bottom: 1px solid hsl(var(--b3)) !important;
+      padding-top: 10px !important;
+  }
+
+  /* Títulos de días */
+  .react-datepicker__day-name {
+      color: hsl(var(--bc) / 0.6) !important;
+      font-weight: bold;
+  }
+
+  /* Días */
+  .react-datepicker__day {
+      color: hsl(var(--bc)) !important;
+      font-weight: 500;
+  }
+  .react-datepicker__day:hover {
+      background-color: hsl(var(--p)) !important; /* primary */
+      color: hsl(var(--pc)) !important;
+      border-radius: 999px !important;
+  }
+
+  /* Día Seleccionado */
+  .react-datepicker__day--selected, 
+  .react-datepicker__day--keyboard-selected {
+      background-color: hsl(var(--p)) !important;
+      color: hsl(var(--pc)) !important;
+      font-weight: bold;
+  }
+
+  /* --- FIX DE LOS SELECTORES (AÑO/MES) --- */
+  .react-datepicker__header select {
+      background-color: hsl(var(--b1)) !important;
+      color: hsl(var(--bc)) !important;
+      border: 1px solid hsl(var(--b3)) !important;
+      border-radius: 6px;
+      padding: 2px 5px;
+      margin: 0 5px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      outline: none;
+  }
+
+  /* Triángulo molesto */
+  .react-datepicker__triangle {
+      display: none !important;
+  }
+
+}
