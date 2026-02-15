@@ -14,6 +14,8 @@ import { CrudButtons, BtnCreate } from '../../../components/ui/CrudButtons';
 // Types
 import { type Voucher } from '../types';
 
+import { VoucherFormModal } from '../components/VoucherFormModal'; 
+
 export const VouchersPage = () => {
     // 1. DATA FETCHING
     const { data: vouchers = [], isLoading } = useVouchers();
@@ -36,9 +38,11 @@ export const VouchersPage = () => {
     }, [vouchers, searchTerm]);
 
     // 3. HANDLERS (Stubs para conectar luego)
+    
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
     const handleCreate = () => {
-        console.log("Abrir modal de creación/escaneo");
-        // setIsFormModalOpen(true);
+        setIsCreateModalOpen(true); 
     };
 
     const handleEdit = (voucher: Voucher) => {
@@ -57,7 +61,7 @@ export const VouchersPage = () => {
             minimumFractionDigits: 2
         }).format(amount);
     };
-
+    
     // 5. DEFINICIÓN DE COLUMNAS
     const columns: Column<Voucher>[] = [
         {
@@ -194,7 +198,13 @@ export const VouchersPage = () => {
                 // Opcional: rowClassName si quieres destacar vouchers recientes
             />
 
-            {/* AQUI IRÁN LOS MODALES (CreateVoucherModal, etc) */}
+            {/* Renderizar Modal */}
+            {isCreateModalOpen && (
+                <VoucherFormModal 
+                    isOpen={isCreateModalOpen} 
+                    onClose={() => setIsCreateModalOpen(false)} 
+                />
+            )}
         </div>
     );
 };

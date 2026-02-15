@@ -13,3 +13,8 @@ export const getVouchers = async (): Promise<Voucher[]> => {
 export const deleteVoucher = async (id: number): Promise<void> => {
     await api.delete(`${BASE_URL}/${id}`);
 };
+
+export const createVoucher = async (payload: any): Promise<Voucher> => {
+    const { data } = await api.post<Voucher>(BASE_URL, payload);
+    return data;
+};
