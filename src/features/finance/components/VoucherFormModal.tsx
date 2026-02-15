@@ -169,6 +169,10 @@ export const VoucherFormModal = ({ isOpen, onClose }: Props) => {
             return;
         }
 
+        // ✅ HELPER: Función para limpiar (Mayúsculas + Trim)
+        // Convierte a mayúsculas y quita espacios SOLO de inicio/fin, respetando los del medio
+        const toUpperClean = (text: string) => text ? text.trim().toUpperCase() : "";
+
         // 1. Construir LocalDateTime (Fecha seleccionada + Hora actual)
         const now = new Date();
         const currentTime = now.toTimeString().split(' ')[0]; // "14:30:00"
@@ -186,7 +190,9 @@ export const VoucherFormModal = ({ isOpen, onClose }: Props) => {
             
             // Banco
             bank: isNewBank ? {
-                id: null, name: data.newBankName, bankCode: data.newBankCode
+                id: null, 
+                name: toUpperClean(data.newBankName), 
+                bankCode: toUpperClean(data.newBankCode)
             } : {
                 id: Number(data.bankId), name: "", bankCode: "" 
             },
@@ -194,11 +200,11 @@ export const VoucherFormModal = ({ isOpen, onClose }: Props) => {
             // Afiliado
             affiliate: isNewAffiliate ? {
                 id: null, 
-                firstName: data.affFirstName, 
-                secondName: data.affSecondName,
-                paternalSurname: data.affPaternalSurname,
-                maternalSurname: data.affMaternalSurname, 
-                identityCard: data.affIdentityCard
+                firstName: toUpperClean(data.affFirstName), 
+                secondName: toUpperClean(data.affSecondName),
+                paternalSurname: toUpperClean(data.affPaternalSurname),
+                maternalSurname: toUpperClean(data.affMaternalSurname), 
+                identityCard: toUpperClean(data.affIdentityCard)
             } : {
                 id: Number(data.affiliateId), 
                 firstName: "", 
