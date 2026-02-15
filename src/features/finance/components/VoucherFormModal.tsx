@@ -101,8 +101,15 @@ export const VoucherFormModal = ({ isOpen, onClose }: Props) => {
                 periodMonth: currentMonth,
                 periodYear: now.getFullYear().toString(),
                 
-                bankId: "", newBankName: "", newBankCode: "",
-                affiliateId: "", affFirstName: "", affPaternalSurname: "", affMaternalSurname: "", affIdentityCard: ""
+                bankId: "", 
+                newBankName: "", 
+                newBankCode: "",
+                affiliateId: "", 
+                affFirstName: "", 
+                affSecondName: "",
+                affPaternalSurname: "", 
+                affMaternalSurname: "", 
+                affIdentityCard: ""
             });
         }
     }, [isOpen, reset]);
@@ -195,7 +202,7 @@ export const VoucherFormModal = ({ isOpen, onClose }: Props) => {
             } : {
                 id: Number(data.affiliateId), 
                 firstName: "", 
-                seconName: "",
+                secondName: "",
                 paternalSurname: "",
                 maternalSurname: "",
                 identityCard: ""
@@ -356,7 +363,7 @@ export const VoucherFormModal = ({ isOpen, onClose }: Props) => {
                                         subtitle: `Cód: ${b.bankCode}`
                                     }))}
                                     value={watch("bankId")}
-                                    onChange={(val) => setValue("bankId", val)}
+                                    onChange={(val) => setValue("bankId", val as any)}
                                     error={!isNewBank && !watch("bankId") && manualShake > 0 ? "Seleccione un banco" : undefined}
                                     shakeKey={submitCount + manualShake}
                                     placeholder="Buscar por nombre..."
@@ -399,10 +406,12 @@ export const VoucherFormModal = ({ isOpen, onClose }: Props) => {
                                     <TravesiaInput 
                                         label="Ap. Paterno" 
                                         placeholder="Ej: Perez" 
+                                        {...register("affPaternalSurname")}
                                     />
                                     <TravesiaInput 
                                         label="Ap. Materno" 
                                         placeholder="Ej: Mamani" 
+                                        {...register("affMaternalSurname")}
                                     />
                                 </div>
                                 
@@ -411,7 +420,7 @@ export const VoucherFormModal = ({ isOpen, onClose }: Props) => {
                                         placeholder="Ej: 4839201" 
                                         isRequired
                                         shakeKey={submitCount + manualShake}
-                                        error={errors.affFirstName ? "Requerido" : undefined}
+                                        error={errors.affIdentityCard ? "Requerido" : undefined}
                                         {...register("affIdentityCard", { required: isNewAffiliate })}
                                     />
                             </div>
@@ -427,7 +436,7 @@ export const VoucherFormModal = ({ isOpen, onClose }: Props) => {
                                         icon: <User size={14}/>
                                     }))}
                                     value={watch("affiliateId")}
-                                    onChange={(val) => setValue("affiliateId", val)}
+                                    onChange={(val) => setValue("affiliateId", val as any)}
                                     error={!isNewAffiliate && !watch("affiliateId") && manualShake > 0 ? "Seleccione una persona" : undefined}
                                     shakeKey={submitCount + manualShake}
                                     placeholder="Nombre o Carnet..."

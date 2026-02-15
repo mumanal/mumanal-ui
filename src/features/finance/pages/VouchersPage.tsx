@@ -124,7 +124,7 @@ export const VouchersPage = () => {
                         </div>
                         {/* Fecha Real del Depósito */}
                         <div className="opacity-60 pl-1" title="Fecha realizada en el banco">
-                            Dep: {format(depositDate, 'dd/MM/yyyy HH:mm')}
+                            Dep: {format(depositDate, 'dd/MM/yyyy')}
                         </div>
                     </div>
                 );
@@ -180,13 +180,6 @@ export const VouchersPage = () => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                </div>
-                
-                {/* Aquí podrías agregar más filtros como un Selector de Bancos o Selector de Fechas */}
-                <div className="flex items-end pb-2 opacity-50 text-xs">
-                    <span className="flex items-center gap-1">
-                        Mostrando <b>{filteredVouchers.length}</b> registros
-                    </span>
                 </div>
             </div>
 
