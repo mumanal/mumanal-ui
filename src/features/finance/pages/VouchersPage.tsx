@@ -36,17 +36,27 @@ export const VouchersPage = () => {
             );
         });
     }, [vouchers, searchTerm]);
-
-    // 3. HANDLERS (Stubs para conectar luego)
     
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    // 3. HANDLERS (Stubs para conectar luego)
 
+    // Estado Modificado: Puede ser null (cerrado) o un Voucher (abierto en modo edición) o true (abierto en modo crear)
+    const [modalData, setModalData] = useState<{ isOpen: boolean; voucher: Voucher | null }>({
+        isOpen: false,
+        voucher: null
+    });
+
+    // Abrir para CREAR
     const handleCreate = () => {
-        setIsCreateModalOpen(true); 
+        setModalData({ isOpen: true, voucher: null });
     };
 
+    // Abrir para EDITAR
     const handleEdit = (voucher: Voucher) => {
-        console.log("Editar voucher", voucher.id);
+        setModalData({ isOpen: true, voucher: voucher });
+    };
+
+    const handleClose = () => {
+        setModalData({ ...modalData, isOpen: false });
     };
 
     const handleDelete = (id: number) => {
@@ -192,10 +202,11 @@ export const VouchersPage = () => {
             />
 
             {/* Renderizar Modal */}
-            {isCreateModalOpen && (
+            {modalData.isOpen && (
                 <VoucherFormModal 
-                    isOpen={isCreateModalOpen} 
-                    onClose={() => setIsCreateModalOpen(false)} 
+                    isOpen={modalData.isOpen} 
+                    onClose={handleClose}
+                    voucherToEdit={modalData.voucher}
                 />
             )}
         </div>
