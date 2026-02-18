@@ -10,7 +10,7 @@ export const getVouchers = async (): Promise<Voucher[]> => {
 };
 
 // DELETE
-export const deleteVoucher = async (id: number): Promise<void> => {
+export const deleteVoucher = async (id: number) => {
     await api.delete(`${BASE_URL}/${id}`);
 };
 

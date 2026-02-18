@@ -1,15 +1,19 @@
 import { useState, useMemo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileText, Calendar, User } from 'lucide-react';
-import { format, parseISO } from 'date-fns'; // Recomendado para fechas, o usar JS nativo
+import { format, parseISO } from 'date-fns'; 
 import { es } from 'date-fns/locale';
 
 // Hooks y Servicios
 import { useVouchers } from '../hooks/useVouchers';
+import { deleteVoucher } from '../services/voucherService';
+import { useToast } from '../../../context/ToastContext'; 
 
 // UI Components
 import { TravesiaTable, type Column } from '../../../components/ui/TravesiaTable';
 import { TravesiaInput } from '../../../components/ui/TravesiaInput';
 import { CrudButtons, BtnCreate } from '../../../components/ui/CrudButtons';
+import { ConfirmationModal } from '../../../components/ui/ConfirmationModal';
 
 // Types
 import { type Voucher } from '../types';
@@ -17,6 +21,9 @@ import { type Voucher } from '../types';
 import { VoucherFormModal } from '../components/VoucherFormModal'; 
 
 export const VouchersPage = () => {
+    const queryClient = useQueryClient();
+    const { success, error: toastError } = useToast();
+    
     // 1. DATA FETCHING
     const { data: vouchers = [], isLoading } = useVouchers();
 
@@ -36,7 +43,24 @@ export const VouchersPage = () => {
             );
         });
     }, [vouchers, searchTerm]);
-    
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [voucherToDelete, setVoucherToDelete] = useState<Voucher | null>(null);
+
+    const deleteMutation = useMutation({
+        mutationFn: deleteVoucher,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['vouchers'] });
+            success("Voucher eliminado correctamente");
+            setIsDeleteModalOpen(false);
+            setVoucherToDelete(null);
+        },
+        onError: (err) => {
+            console.error(err);
+            toastError("No se pudo eliminar el voucher. Intente nuevamente.");
+        }
+    });
+
     // 3. HANDLERS (Stubs para conectar luego)
 
     // Estado Modificado: Puede ser null (cerrado) o un Voucher (abierto en modo edición) o true (abierto en modo crear)
@@ -59,9 +83,18 @@ export const VouchersPage = () => {
         setModalData({ ...modalData, isOpen: false });
     };
 
-    const handleDelete = (id: number) => {
-        console.log("Eliminar voucher", id);
+    // ✅ NUEVO: Handler click en botón eliminar (abre modal)
+    const handleDeleteClick = (voucher: Voucher) => {
+        setVoucherToDelete(voucher);
+        setIsDeleteModalOpen(true);
     };
+
+    // ✅ NUEVO: Handler confirmar eliminación (ejecuta API)
+    const handleConfirmDelete = () => {
+        if (voucherToDelete) {
+            deleteMutation.mutate(voucherToDelete.id);
+        }
+    };    
 
     // 4. FORMATO DE MONEDA
     const formatCurrency = (amount: number) => {
@@ -162,7 +195,7 @@ export const VouchersPage = () => {
             render: (row) => (
                 <CrudButtons 
                     onEdit={() => handleEdit(row)} 
-                    onDelete={() => handleDelete(row.id)} 
+                    onDelete={() => handleDeleteClick(row)} 
                 />
             )
         }
@@ -209,6 +242,21 @@ export const VouchersPage = () => {
                     voucherToEdit={modalData.voucher}
                 />
             )}
+
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => { setIsDeleteModalOpen(false); setVoucherToDelete(null); }}
+                onConfirm={handleConfirmDelete}
+                title="¿Eliminar Voucher?"
+                message={
+                    voucherToDelete 
+                    ? `Estás a punto de eliminar el depósito N° ${voucherToDelete.depositNumber} de ${voucherToDelete.affiliate.fullName}. Esta acción no se puede deshacer.`
+                    : "¿Estás seguro de realizar esta acción?"
+                }
+                confirmText={deleteMutation.isPending ? "Eliminando..." : "Sí, Eliminar"}
+                variant="danger"
+                isLoading={deleteMutation.isPending}
+            />
         </div>
     );
 };
