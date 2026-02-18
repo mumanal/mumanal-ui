@@ -157,9 +157,9 @@ export const SidebarMenu = ({ menuTree, isLoading, isCollapsed, toggleCollapse }
             {/* 1. HEADER (Logo) */}
             <div className={`h-16 flex items-center gap-3 px-6 border-b border-base-300 bg-base-200 shrink-0 ${isCollapsed ? 'justify-center px-0' : ''}`}>
                 <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-content font-bold shadow-lg shadow-primary/40 shrink-0">
-                    T
+                    M
                 </div>
-                {!isCollapsed && <span className="text-xl font-bold tracking-wide text-base-content animate-fade-in">Travesia</span>}
+                {!isCollapsed && <span className="text-xl font-bold tracking-wide text-base-content animate-fade-in">Mumanal</span>}
             </div>
 
             {/* 2. AREA SCROLLABLE */}

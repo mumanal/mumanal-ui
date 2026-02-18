@@ -1,5 +1,5 @@
 export const DashboardPage = () => {
   return (
-    <p>Welcome</p>
+    <p>Bienvenido</p>
   );
 };
