@@ -45,7 +45,7 @@ export const LoginPage = () => {
         <div className="min-h-screen flex items-center justify-center bg-base-200">
             <div className="card w-96 bg-base-100 shadow-xl">
                 <div className="card-body">
-                    <h2 className="card-title text-2xl font-bold justify-center mb-4">Mumanal</h2>
+                    <h2 className="card-title text-2xl font-bold justify-center mb-4">COMAJUB</h2>
                     
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <TravesiaInput 
