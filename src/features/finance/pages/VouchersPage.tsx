@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { FileText, Calendar, User } from 'lucide-react';
-import { format, parseISO } from 'date-fns'; 
+import { FileText, Calendar, User, Filter, X } from 'lucide-react'; // Agregué iconos extra
+import { format, parseISO, isSameDay } from 'date-fns'; 
 import { es } from 'date-fns/locale';
 
 // Hooks y Servicios
@@ -12,6 +12,7 @@ import { useToast } from '../../../context/ToastContext';
 // UI Components
 import { TravesiaTable, type Column } from '../../../components/ui/TravesiaTable';
 import { TravesiaInput } from '../../../components/ui/TravesiaInput';
+import { TravesiaSelect } from '../../../components/ui/TravesiaSelect'; // ✅ Importamos Select
 import { CrudButtons, BtnCreate } from '../../../components/ui/CrudButtons';
 import { ConfirmationModal } from '../../../components/ui/ConfirmationModal';
 
@@ -19,6 +20,16 @@ import { ConfirmationModal } from '../../../components/ui/ConfirmationModal';
 import { type Voucher } from '../types';
 
 import { VoucherFormModal } from '../components/VoucherFormModal'; 
+
+// Constantes para los selectores
+const MONTHS = [
+    { value: "01", label: "Enero" }, { value: "02", label: "Febrero" },
+    { value: "03", label: "Marzo" }, { value: "04", label: "Abril" },
+    { value: "05", label: "Mayo" }, { value: "06", label: "Junio" },
+    { value: "07", label: "Julio" }, { value: "08", label: "Agosto" },
+    { value: "09", label: "Septiembre" }, { value: "10", label: "Octubre" },
+    { value: "11", label: "Noviembre" }, { value: "12", label: "Diciembre" }
+];
 
 export const VouchersPage = () => {
     const queryClient = useQueryClient();
@@ -29,21 +40,58 @@ export const VouchersPage = () => {
 
     // 2. FILTROS LOCALES
     const [searchTerm, setSearchTerm] = useState('');
+    
+    // ✅ Nuevos estados para filtros de fecha
+    const [filterPeriodMonth, setFilterPeriodMonth] = useState('');
+    const [filterPeriodYear, setFilterPeriodYear] = useState('');
+    const [filterDepositDate, setFilterDepositDate] = useState('');
+
+    // Generar años dinámicamente (actual - 5 años)
+    const years = useMemo(() => {
+        const currentYear = new Date().getFullYear();
+        return Array.from({ length: 6 }, (_, i) => {
+            const year = (currentYear - i).toString();
+            return { value: year, label: year };
+        });
+    }, []);
 
     const filteredVouchers = useMemo(() => {
         return vouchers.filter(v => {
             const searchLower = searchTerm.toLowerCase();
             
-            // Buscamos por: Nombre Afiliado, CI, Nro Depósito o Nombre Banco
-            return (
+            // 1. Filtro de Texto General
+            const matchesSearch = (
                 v.affiliate.fullName.toLowerCase().includes(searchLower) ||
                 v.affiliate.identityCard.toLowerCase().includes(searchLower) ||
                 v.depositNumber.toString().includes(searchLower) ||
                 v.bank.name.toLowerCase().includes(searchLower)
             );
-        });
-    }, [vouchers, searchTerm]);
 
+            // 2. Filtro de Periodo (Mes y Año)
+            // v.period viene como "YYYY-MM-DD"
+            let matchesPeriod = true;
+            if (filterPeriodYear || filterPeriodMonth) {
+                const [vYear, vMonth] = v.period.split('-'); // ["2026", "02", "01"]
+                
+                if (filterPeriodYear && vYear !== filterPeriodYear) matchesPeriod = false;
+                if (filterPeriodMonth && vMonth !== filterPeriodMonth) matchesPeriod = false;
+            }
+
+            // 3. Filtro de Fecha de Depósito (Exacta)
+            // v.depositDate viene como ISO DateTime "2026-02-18T15:30:00"
+            let matchesDepositDate = true;
+            if (filterDepositDate) {
+                const voucherDate = parseISO(v.depositDate);
+                const filterDate = parseISO(filterDepositDate);
+                // Comparamos si es el mismo día ignorando la hora
+                matchesDepositDate = isSameDay(voucherDate, filterDate);
+            }
+
+            return matchesSearch && matchesPeriod && matchesDepositDate;
+        });
+    }, [vouchers, searchTerm, filterPeriodMonth, filterPeriodYear, filterDepositDate]);
+
+    // ... (Lógica de Delete y Modales se mantiene igual) ...
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [voucherToDelete, setVoucherToDelete] = useState<Voucher | null>(null);
 
@@ -61,51 +109,41 @@ export const VouchersPage = () => {
         }
     });
 
-    // 3. HANDLERS (Stubs para conectar luego)
-
-    // Estado Modificado: Puede ser null (cerrado) o un Voucher (abierto en modo edición) o true (abierto en modo crear)
     const [modalData, setModalData] = useState<{ isOpen: boolean; voucher: Voucher | null }>({
         isOpen: false,
         voucher: null
     });
 
-    // Abrir para CREAR
-    const handleCreate = () => {
-        setModalData({ isOpen: true, voucher: null });
-    };
+    const handleCreate = () => setModalData({ isOpen: true, voucher: null });
+    const handleEdit = (voucher: Voucher) => setModalData({ isOpen: true, voucher: voucher });
+    const handleClose = () => setModalData({ ...modalData, isOpen: false });
 
-    // Abrir para EDITAR
-    const handleEdit = (voucher: Voucher) => {
-        setModalData({ isOpen: true, voucher: voucher });
-    };
-
-    const handleClose = () => {
-        setModalData({ ...modalData, isOpen: false });
-    };
-
-    // ✅ NUEVO: Handler click en botón eliminar (abre modal)
     const handleDeleteClick = (voucher: Voucher) => {
         setVoucherToDelete(voucher);
         setIsDeleteModalOpen(true);
     };
 
-    // ✅ NUEVO: Handler confirmar eliminación (ejecuta API)
     const handleConfirmDelete = () => {
-        if (voucherToDelete) {
-            deleteMutation.mutate(voucherToDelete.id);
-        }
+        if (voucherToDelete) deleteMutation.mutate(voucherToDelete.id);
     };    
 
-    // 4. FORMATO DE MONEDA
+    // Resetear filtros
+    const clearFilters = () => {
+        setSearchTerm('');
+        setFilterPeriodMonth('');
+        setFilterPeriodYear('');
+        setFilterDepositDate('');
+    };
+
+    const hasActiveFilters = searchTerm || filterPeriodMonth || filterPeriodYear || filterDepositDate;
+
+    // ... (Format Currency y Columns se mantienen igual) ...
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('es-BO', {
-            style: 'currency',
-            currency: 'BOB',
-            minimumFractionDigits: 2
+            style: 'currency', currency: 'BOB', minimumFractionDigits: 2
         }).format(amount);
     };
     
-    // 5. DEFINICIÓN DE COLUMNAS
     const columns: Column<Voucher>[] = [
         {
             header: 'Nº Depósito',
@@ -142,7 +180,6 @@ export const VouchersPage = () => {
             render: (row) => (
                 <div className="flex flex-col items-start gap-1">
                     <span className="font-medium text-sm">{row.bank.name}</span>
-                    {/* Badge simple para el código del banco */}
                     <span className="badge badge-sm badge-ghost text-[10px] font-mono h-5 px-1.5 border-0 bg-base-200">
                         {row.bank.bankCode}
                     </span>
@@ -152,20 +189,17 @@ export const VouchersPage = () => {
         {
             header: 'Periodo & Fechas',
             render: (row) => {
-                // Formateo de fechas seguro
                 const depositDate = parseISO(row.depositDate);
-                const periodDate = parseISO(row.period); // Viene YYYY-MM-DD
+                const periodDate = parseISO(row.period); 
                 
                 return (
                     <div className="flex flex-col gap-1 text-xs">
-                        {/* Periodo Destacado */}
                         <div className="flex items-center gap-1.5 text-primary font-bold bg-primary/5 px-2 py-0.5 rounded-md w-fit">
                             <Calendar size={12} />
                             <span className="capitalize">
                                 {format(periodDate, 'MMMM yyyy', { locale: es })}
                             </span>
                         </div>
-                        {/* Fecha Real del Depósito */}
                         <div className="opacity-60 pl-1" title="Fecha realizada en el banco">
                             Dep: {format(depositDate, 'dd/MM/yyyy')}
                         </div>
@@ -182,10 +216,6 @@ export const VouchersPage = () => {
                     <span className="font-mono font-bold text-base text-success">
                         {formatCurrency(row.amount)}
                     </span>
-                    {/* <span className="text-[10px] opacity-50 flex items-center gap-1">
-                        <CreditCard size={10} />
-                        Confirmado
-                    </span> */}
                 </div>
             )
         },
@@ -209,21 +239,78 @@ export const VouchersPage = () => {
                     <h1 className="text-2xl font-bold text-base-content">Control de Vouchers</h1>
                     <p className="text-sm text-base-content/60">Gestión y digitalización de comprobantes bancarios.</p>
                 </div>
-                {/* Aquí conectaremos el Modal de Escaneo con IA más adelante */}
                 <BtnCreate label="Registrar Voucher" onClick={handleCreate} />
             </div>
 
-            {/* Filtros */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-base-100 p-4 rounded-xl shadow-sm border border-base-200">
-                <div className="md:col-span-1">
-                    <TravesiaInput 
-                        label="Búsqueda Rápida" 
-                        placeholder="Nº Depósito, Nombre, CI..." 
-                        icon="search"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+            {/* ✅ SECCIÓN DE FILTROS ACTUALIZADA */}
+            <div className="bg-base-200 p-5 rounded-2xl shadow-sm border border-base-300">
+                <div className="flex items-center gap-2 mb-3 text-xs font-bold uppercase tracking-wider text-base-content/50">
+                    <Filter size={14} /> Filtros de Búsqueda
                 </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    
+                    {/* Búsqueda Texto */}
+                    <div className="md:col-span-4">
+                        <TravesiaInput 
+                            label="Buscar General" 
+                            placeholder="Nº Depósito, Nombre, CI..." 
+                            icon="search"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="bg-base-100" // Fondo blanco para inputs
+                        />
+                    </div>
+
+                    {/* Filtro Periodo (Mes/Año) */}
+                    <div className="md:col-span-2">
+                        <TravesiaSelect
+                            label="Mes (Periodo)"
+                            options={MONTHS}
+                            value={filterPeriodMonth}
+                            onChange={(e) => setFilterPeriodMonth(e.target.value)}
+                            placeholder="Todos"
+                            enableDefaultOption
+                            className="bg-base-100"
+                        />
+                    </div>
+                    <div className="md:col-span-2">
+                        <TravesiaSelect
+                            label="Año (Periodo)"
+                            options={years}
+                            value={filterPeriodYear}
+                            onChange={(e) => setFilterPeriodYear(e.target.value)}
+                            placeholder="Todos"
+                            enableDefaultOption
+                            className="bg-base-100"
+                        />
+                    </div>
+
+                    {/* Filtro Fecha Deposito */}
+                    <div className="md:col-span-3">
+                        <TravesiaInput 
+                            label="Fecha Depósito"
+                            type="date"
+                            value={filterDepositDate}
+                            onChange={(e) => setFilterDepositDate(e.target.value)}
+                            className="bg-base-100"
+                        />
+                    </div>
+
+                    {/* Botón Limpiar */}
+                    <div className="md:col-span-1">
+                        {hasActiveFilters && (
+                            <button 
+                                onClick={clearFilters}
+                                className="btn btn-ghost btn-sm w-full text-error"
+                                title="Limpiar filtros"
+                            >
+                                <X size={18} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+                
             </div>
 
             {/* Tabla */}
@@ -231,10 +318,9 @@ export const VouchersPage = () => {
                 data={filteredVouchers} 
                 columns={columns} 
                 isLoading={isLoading}
-                // Opcional: rowClassName si quieres destacar vouchers recientes
             />
 
-            {/* Renderizar Modal */}
+            {/* Modales */}
             {modalData.isOpen && (
                 <VoucherFormModal 
                     isOpen={modalData.isOpen} 
