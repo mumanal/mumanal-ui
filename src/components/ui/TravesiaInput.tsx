@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import { IconRenderer } from "./IconRenderer";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -7,10 +7,32 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: string;
   isRequired?: boolean; // NUEVA PROPIEDAD
   shakeKey?: number; // NUEVA PROP
-  helperText?: string;
+  helperText?: React.ReactNode;
+  uppercase?: boolean;
 }
 
-export const TravesiaInput = ({ label, error, icon, isRequired, shakeKey, helperText, className = "", ...props }: Props) => {
+export const TravesiaInput = forwardRef<HTMLInputElement, Props>(({ 
+  label, error, icon, isRequired, shakeKey, helperText, uppercase, className = "", 
+  onChange, onBlur, ...props 
+}, ref) => {
+
+  // Interceptamos el evento onChange
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uppercase && e.target.value) {
+      e.target.value = e.target.value.toUpperCase(); // Fuerza mayúscula en tiempo real
+    }
+    if (onChange) onChange(e); // Llama al onChange original de react-hook-form
+  };
+
+  // Interceptamos el evento onBlur (cuando quita el foco)
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (e.target.value) {
+      e.target.value = e.target.value.trim(); // Limpia espacios al inicio y final
+      if (uppercase) e.target.value = e.target.value.toUpperCase();
+    }
+    if (onBlur) onBlur(e); // Llama al onBlur original de react-hook-form
+  };
+
   return (
     <div 
       key={error && shakeKey ? `err-${shakeKey}` : undefined}
@@ -28,12 +50,20 @@ export const TravesiaInput = ({ label, error, icon, isRequired, shakeKey, helper
       
       <div className="relative">
         <input
+          ref={ref}
           className={`
             input input-bordered w-full 
             ${error ? "input-error bg-error/5" : ""} 
             ${icon ? "pl-10" : ""} 
             ${className}
           `}
+          onChange={handleChange} // Usamos nuestro handler
+          onBlur={handleBlur}     // Usamos nuestro handler
+          onWheel={(e) => {
+            if (props.type === "number") {
+                (e.target as HTMLInputElement).blur();
+            }
+          }}
           {...props}
         />
 
@@ -57,4 +87,6 @@ export const TravesiaInput = ({ label, error, icon, isRequired, shakeKey, helper
       )}
     </div>
   );
-};
+});
+
+TravesiaInput.displayName = "TravesiaInput";

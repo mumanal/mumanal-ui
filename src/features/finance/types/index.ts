@@ -16,7 +16,7 @@ export interface Affiliate {
 
 export interface Voucher {
     id: number;
-    depositNumber: number;
+    depositNumber: string;
     depositDate: string;      // LocalDateTime ISO
     registrationDate: string; // LocalDateTime ISO
     amount: number;           // BigDecimal

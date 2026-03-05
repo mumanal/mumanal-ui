@@ -243,7 +243,7 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
 
                 // 3. Update Voucher (PUT)
                 const updatePayload = {
-                    depositNumber: Number(data.depositNumber),
+                    depositNumber: data.depositNumber.trim(),
                     depositDate: finalDepositDateTime,
                     amount: Number(data.amount),
                     period: finalPeriodDate,
@@ -258,7 +258,7 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
             // === LÓGICA DE CREATE (Legacy - Mantenemos objetos) ===
             else {
                 const createPayload = {
-                    depositNumber: Number(data.depositNumber),
+                    depositNumber: data.depositNumber.trim(),
                     depositDate: finalDepositDateTime,
                     amount: Number(data.amount),
                     period: finalPeriodDate,
@@ -289,9 +289,25 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
             if (isNewAffiliate) queryClient.invalidateQueries({ queryKey: ["affiliates"] });
             onClose();
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toastError("Error al procesar la solicitud.");
+            
+            // Verificamos si el error viene de la respuesta del servidor (Axios)
+            if (error.response) {
+                const status = error.response.status;
+                const errorData = error.response.data;
+
+                // Si es 409 Conflicto (Ya existe)
+                if (status === 409 || errorData?.code === "resource_already_exists") {
+                    toastError("Este número de depósito ya se encuentra registrado.");
+                    // Opcionalmente, activamos el "shake" para que el usuario revise el formulario
+                    setManualShake(p => p + 1);
+                    return; // Salimos para no mostrar el mensaje de error genérico
+                }
+            }
+
+            // Fallback para cualquier otro tipo de error (500, red, etc.)
+            toastError("Error al procesar la solicitud. Intente nuevamente.");
         } finally {
             setIsSubmitting(false);
         }
@@ -350,7 +366,6 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <TravesiaInput 
                             label="N° Depósito" 
-                            type="number"
                             placeholder="Ej: 12345678"
                             icon="hash"
                             isRequired
