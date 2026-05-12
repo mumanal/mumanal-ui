@@ -6,14 +6,14 @@ export interface SelectOption {
 }
 
 interface Props extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label: string;
+  label?: string; // <-- 1. LO HACEMOS OPCIONAL (?)
   options: SelectOption[];
   error?: string;
   placeholder?: string;
   isLoading?: boolean;
-  enableDefaultOption?: boolean; // 1. NUEVA PROPIEDAD
+  enableDefaultOption?: boolean;
   isRequired?: boolean;
-  shakeKey?: number; // NUEVA PROP
+  shakeKey?: number;
 }
 
 export const TravesiaSelect = ({ 
@@ -27,19 +27,21 @@ export const TravesiaSelect = ({
       key={error && shakeKey ? `err-${shakeKey}` : undefined}
       className={`form-control w-full ${error ? "animate-shake" : ""}`}
     >
-      <label className="label">
-        <span className={`label-text font-semibold flex gap-1 ${error ? "text-error" : ""}`}>
-            {label}
-            {isRequired && <span className="text-error">*</span>}
-        </span>
-      </label>
+      {/* 2. SOLO RENDERIZAMOS EL LABEL SI LO MANDAN */}
+      {label && (
+        <label className="label">
+            <span className={`label-text font-semibold flex gap-1 ${error ? "text-error" : ""}`}>
+                {label}
+                {isRequired && <span className="text-error">*</span>}
+            </span>
+        </label>
+      )}
       
       <select 
         className={`select select-bordered w-full ${error ? "select-error bg-error/5" : ""}`} 
         disabled={isLoading}
         {...props}
       >
-        {/* ... lógica de opciones (mantenla igual) ... */}
          <option disabled={isLoading || !enableDefaultOption} value="">
             {isLoading ? "Cargando datos..." : placeholder}
         </option>

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { FileText, Calendar, User, Filter, X, MapPin } from 'lucide-react'; // Agregué iconos extra
+import { FileText, Calendar, User, MapPin, Paintbrush } from 'lucide-react'; // Agregué iconos extra
 import { format, parseISO, isSameDay } from 'date-fns'; 
 import { es } from 'date-fns/locale';
 
@@ -261,67 +261,66 @@ export const VouchersPage = () => {
                 </div>
                 <BtnCreate label="Registrar Voucher" onClick={handleCreate} />
             </div>
-
-            {/* ✅ SECCIÓN DE FILTROS ACTUALIZADA */}
-            <div className="bg-base-200 p-5 rounded-2xl shadow-sm border border-base-300">
-                <div className="flex items-center gap-2 mb-3 text-xs font-bold uppercase tracking-wider text-base-content/50">
-                    <Filter size={14} /> Filtros de Búsqueda
-                </div>
+{/* ✅ SECCIÓN DE FILTROS (Alineación Perfecta y Diseño Agrupado) */}
+            <div className="bg-base-200 p-4 rounded-xl shadow-sm border border-base-300">
                 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                {/* Grilla estricta: 1 sola línea en PC */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                     
-                    {/* Búsqueda Texto */}
+                    {/* 1. Búsqueda Texto (Ocupa 3 de 12) */}
                     <div className="md:col-span-3">
                         <TravesiaInput 
-                            label="Buscar General" 
-                            placeholder="Nº Depósito, Nombre, CI..." 
+                            label="Búsqueda General" 
+                            placeholder="Nº Depósito, CI, Nombre..." 
                             icon="search"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-base-100" // Fondo blanco para inputs
+                            className="bg-base-100" 
                         />
                     </div>
                     
-                    {/* NUEVO FILTRO CIUDAD */}
-                    <div className="md:col-span-2">
+                    {/* 2. Filtro Ciudad (Ocupa 3 de 12 - Más ancho para nombres largos) */}
+                    <div className="md:col-span-3">
                         <TravesiaSelect
-                            label="Ciudad"
+                            label="Ciudad / Sucursal"
                             options={cities.map(c => ({ value: c.id.toString(), label: c.name }))}
                             value={filterCityId}
                             onChange={(e) => setFilterCityId(e.target.value)}
                             placeholder="Todas"
                             enableDefaultOption
-                            className="bg-base-100"
                             disabled={loadingCities}
                         />
                     </div>
 
-                    {/* Filtro Periodo (Mes/Año) */}
-                    <div className="md:col-span-2">
-                        <TravesiaSelect
-                            label="Mes (Periodo)"
-                            options={MONTHS}
-                            value={filterPeriodMonth}
-                            onChange={(e) => setFilterPeriodMonth(e.target.value)}
-                            placeholder="Todos"
-                            enableDefaultOption
-                            className="bg-base-100"
-                        />
-                    </div>
-                    <div className="md:col-span-2">
-                        <TravesiaSelect
-                            label="Año (Periodo)"
-                            options={years}
-                            value={filterPeriodYear}
-                            onChange={(e) => setFilterPeriodYear(e.target.value)}
-                            placeholder="Todos"
-                            enableDefaultOption
-                            className="bg-base-100"
-                        />
+                    {/* 3. Filtro Periodo Agrupado (3/12) */}
+                    <div className="md:col-span-3">
+                        {/* LA CLAVE: Usar la clase "label" nativa sin pt-0 ni utilidades extra para que la altura sea idéntica a los demás inputs */}
+                        <label className="label">
+                            <span className="label-text font-semibold flex gap-1 items-center">
+                                <Calendar size={14} className="text-primary"/> Periodo de Aporte
+                            </span>
+                        </label>
+                        
+                        <div className="flex gap-2">
+                            <TravesiaSelect
+                                options={MONTHS}
+                                value={filterPeriodMonth}
+                                onChange={(e) => setFilterPeriodMonth(e.target.value)}
+                                placeholder="Mes"
+                                enableDefaultOption
+                            />
+                            <TravesiaSelect
+                                options={years}
+                                value={filterPeriodYear}
+                                onChange={(e) => setFilterPeriodYear(e.target.value)}
+                                placeholder="Año"
+                                enableDefaultOption
+                            />
+                        </div>
                     </div>
 
-                    {/* Filtro Fecha Deposito */}
-                    <div className="md:col-span-3">
+                    {/* 4. Filtro Fecha Deposito (Ocupa 2 de 12) */}
+                    <div className="md:col-span-2">
                         <TravesiaInput 
                             label="Fecha Depósito"
                             type="date"
@@ -331,22 +330,25 @@ export const VouchersPage = () => {
                         />
                     </div>
 
-                    {/* Botón Limpiar */}
-                    <div className="md:col-span-1">
-                        {hasActiveFilters && (
+                    {/* 5. Botón Limpiar (Ocupa 1 de 12) */}
+                    <div className="md:col-span-1 flex justify-end">
+                        {hasActiveFilters ? (
                             <button 
                                 onClick={clearFilters}
-                                className="btn btn-ghost btn-sm w-full text-error"
+                                className="btn btn-ghost border border-error/30 text-error hover:bg-error hover:text-white w-full h-[46px] min-h-0 rounded-lg p-0 flex items-center justify-center"
                                 title="Limpiar filtros"
                             >
-                                <X size={18} />
+                                <Paintbrush size={20} />
                             </button>
+                        ) : (
+                            <div className="h-[46px] w-full hidden md:block"></div>
                         )}
                     </div>
+
                 </div>
-                
             </div>
 
+            
             {/* Tabla */}
             <TravesiaTable 
                 data={filteredVouchers} 
