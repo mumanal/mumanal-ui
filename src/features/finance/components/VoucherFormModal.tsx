@@ -11,6 +11,7 @@ import { createAffiliate } from "../services/affiliateService";
 import { useBanks } from "../hooks/useBanks";
 import { useAffiliates } from "../hooks/useAffiliates";
 import { useToast } from "../../../context/ToastContext";
+import { useCities } from "../../../hooks/useCities";
 
 // UI Components
 import { TravesiaModal } from "../../../components/ui/TravesiaModal";
@@ -48,6 +49,7 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
     // Hooks de Data
     const { data: banks = [], isLoading: loadingBanks } = useBanks();
     const { data: affiliates = [], isLoading: loadingAffiliates } = useAffiliates();
+    const { data: cities = [], isLoading: loadingCities } = useCities();
 
     // Estados Locales
     const [currentStep, setCurrentStep] = useState(1);
@@ -69,7 +71,8 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
             depositNumber: "",
             depositDate: "", // Solo fecha (YYYY-MM-DD)
             amount: "",
-            
+            cityId: "",
+
             // Periodo (Selectores separados)
             periodMonth: "",
             periodYear: "",
@@ -108,7 +111,8 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
                     depositNumber: voucherToEdit.depositNumber.toString(),
                     depositDate: format(depDate, 'yyyy-MM-dd'),
                     amount: voucherToEdit.amount.toString(),
-                    
+                    cityId: voucherToEdit.city?.id?.toString() || "",
+
                     periodMonth: format(perDate, 'MM'),
                     periodYear: format(perDate, 'yyyy'),
 
@@ -126,6 +130,7 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
                 
                 reset({
                     depositNumber: "",
+                    cityId: "",
                     depositDate: now.toISOString().split('T')[0], // "2026-02-11"
                     amount: "",
                     
@@ -153,7 +158,7 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
 
         if (currentStep === 1) {
             // Validamos los campos separados del periodo
-            isValid = await trigger(["depositNumber", "depositDate", "amount", "periodMonth", "periodYear"]);
+            isValid = await trigger(["depositNumber", "depositDate", "amount", "periodMonth", "periodYear", "cityId"]);
         } else if (currentStep === 2) {
             if (isNewBank) {
                 isValid = await trigger(["newBankName", "newBankCode"]);
@@ -247,6 +252,7 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
                     depositDate: finalDepositDateTime,
                     amount: Number(data.amount),
                     period: finalPeriodDate,
+                    cityId: Number(data.cityId),
                     bankId: finalBankId,     // Enviamos ID
                     personId: finalPersonId  // Enviamos ID
                 };
@@ -262,7 +268,7 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
                     depositDate: finalDepositDateTime,
                     amount: Number(data.amount),
                     period: finalPeriodDate,
-                    
+                    cityId: Number(data.cityId),
                     bank: isNewBank ? {
                         id: null,
                         name: toUpperClean(data.newBankName),
@@ -384,19 +390,31 @@ export const VoucherFormModal = ({ isOpen, onClose, voucherToEdit }: Props) => {
                         />
                     </div>
 
-                    {/* FILA 2: Importe */}
-                    <TravesiaInput 
-                        label="IMPORTE DEPÓSITO APORTE" 
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        icon="dollar-sign"
-                        isRequired
-                        className="input-success font-bold text-lg" // Un poco más grande para resaltar
-                        shakeKey={submitCount + manualShake}
-                        error={errors.amount ? "Requerido" : undefined}
-                        {...register("amount", { required: true, min: 0.01 })}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <TravesiaInput 
+                            label="IMPORTE DEPÓSITO APORTE" 
+                            type="number" 
+                            step="0.01" 
+                            placeholder="0.00" 
+                            icon="dollar-sign" 
+                            isRequired
+                            className="input-success font-bold text-lg" 
+                            shakeKey={submitCount + manualShake}
+                            error={errors.amount ? "Requerido" : undefined} 
+                            {...register("amount", { required: true, min: 0.01 })}
+                        />
+
+                        {/* SELECT DE CIUDAD AQUI */}
+                        <TravesiaSelect 
+                            label="Ciudad / Sucursal"
+                            options={cities.map(c => ({ value: c.id.toString(), label: c.name }))}
+                            isRequired
+                            shakeKey={submitCount + manualShake}
+                            error={errors.cityId ? "Requerido" : undefined}
+                            {...register("cityId", { required: true })}
+                            disabled={loadingCities}
+                        />
+                    </div>
 
                     {/* FILA 3: Sección Periodo (Título + Selectores) */}
                     <div className="bg-base-200/50 p-4 rounded-xl border border-base-200 space-y-2">

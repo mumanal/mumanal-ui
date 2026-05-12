@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { FileText, Calendar, User, Filter, X } from 'lucide-react'; // Agregué iconos extra
+import { FileText, Calendar, User, Filter, X, MapPin } from 'lucide-react'; // Agregué iconos extra
 import { format, parseISO, isSameDay } from 'date-fns'; 
 import { es } from 'date-fns/locale';
 
@@ -8,6 +8,7 @@ import { es } from 'date-fns/locale';
 import { useVouchers } from '../hooks/useVouchers';
 import { deleteVoucher } from '../services/voucherService';
 import { useToast } from '../../../context/ToastContext'; 
+import { useCities } from '../../../hooks/useCities';
 
 // UI Components
 import { TravesiaTable, type Column } from '../../../components/ui/TravesiaTable';
@@ -37,6 +38,7 @@ export const VouchersPage = () => {
     
     // 1. DATA FETCHING
     const { data: vouchers = [], isLoading } = useVouchers();
+    const { data: cities = [], isLoading: loadingCities } = useCities();
 
     // 2. FILTROS LOCALES
     const [searchTerm, setSearchTerm] = useState('');
@@ -45,7 +47,8 @@ export const VouchersPage = () => {
     const [filterPeriodMonth, setFilterPeriodMonth] = useState('');
     const [filterPeriodYear, setFilterPeriodYear] = useState('');
     const [filterDepositDate, setFilterDepositDate] = useState('');
-
+    const [filterCityId, setFilterCityId] = useState('');
+    
     // Generar años dinámicamente (actual - 5 años)
     const years = useMemo(() => {
         const currentYear = new Date().getFullYear();
@@ -87,9 +90,15 @@ export const VouchersPage = () => {
                 matchesDepositDate = isSameDay(voucherDate, filterDate);
             }
 
-            return matchesSearch && matchesPeriod && matchesDepositDate;
+            // 4. Filtro por Ciudad
+            let matchesCity = true;
+            if (filterCityId && v.city?.id?.toString() !== filterCityId) {
+                matchesCity = false;
+            }
+
+            return matchesSearch && matchesPeriod && matchesDepositDate && matchesCity;
         });
-    }, [vouchers, searchTerm, filterPeriodMonth, filterPeriodYear, filterDepositDate]);
+    }, [vouchers, searchTerm, filterPeriodMonth, filterPeriodYear, filterDepositDate, filterCityId]);
 
     // ... (Lógica de Delete y Modales se mantiene igual) ...
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -133,9 +142,10 @@ export const VouchersPage = () => {
         setFilterPeriodMonth('');
         setFilterPeriodYear('');
         setFilterDepositDate('');
+        setFilterCityId('');
     };
 
-    const hasActiveFilters = searchTerm || filterPeriodMonth || filterPeriodYear || filterDepositDate;
+    const hasActiveFilters = searchTerm || filterPeriodMonth || filterPeriodYear || filterDepositDate || filterCityId;
 
     // ... (Format Currency y Columns se mantienen igual) ...
     const formatCurrency = (amount: number) => {
@@ -183,6 +193,16 @@ export const VouchersPage = () => {
                     <span className="badge badge-sm badge-ghost text-[10px] font-mono h-5 px-1.5 border-0 bg-base-200">
                         {row.bank.bankCode}
                     </span>
+                </div>
+            )
+        },
+        {
+            header: 'Ciudad / Sucursal',
+            accessorKey: 'city.name' as any,
+            render: (row) => (
+                <div className="flex items-center gap-1.5 text-sm text-base-content/80 font-medium">
+                    <MapPin size={14} className="text-error/80" />
+                    {row.city?.name || 'N/A'}
                 </div>
             )
         },
@@ -251,7 +271,7 @@ export const VouchersPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                     
                     {/* Búsqueda Texto */}
-                    <div className="md:col-span-4">
+                    <div className="md:col-span-3">
                         <TravesiaInput 
                             label="Buscar General" 
                             placeholder="Nº Depósito, Nombre, CI..." 
@@ -259,6 +279,20 @@ export const VouchersPage = () => {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="bg-base-100" // Fondo blanco para inputs
+                        />
+                    </div>
+                    
+                    {/* NUEVO FILTRO CIUDAD */}
+                    <div className="md:col-span-2">
+                        <TravesiaSelect
+                            label="Ciudad"
+                            options={cities.map(c => ({ value: c.id.toString(), label: c.name }))}
+                            value={filterCityId}
+                            onChange={(e) => setFilterCityId(e.target.value)}
+                            placeholder="Todas"
+                            enableDefaultOption
+                            className="bg-base-100"
+                            disabled={loadingCities}
                         />
                     </div>
 

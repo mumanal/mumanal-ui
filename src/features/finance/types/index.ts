@@ -1,3 +1,9 @@
+export interface City {
+    id: number;
+    name: string;
+    country: string;
+}
+
 export interface Bank {
     id: number;
     name: string;
@@ -23,6 +29,7 @@ export interface Voucher {
     period: string;           // LocalDate (YYYY-MM-DD)
     
     // Objetos anidados
+    city: City;
     bank: Bank;
     affiliate: Affiliate;
 }
